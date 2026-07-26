@@ -3,3 +3,6 @@ build_property.RootNamespace = MyWeapons
 build_property.ProjectDir = /home/lisanhu/mine/workspace/rimworld/MyWeapons/1.4/Source/
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.CsWinRTUseWindowsUIXamlProjections = false
+build_property.EffectiveAnalysisLevelStyle = 
+build_property.EnableCodeStyleSeverity = 

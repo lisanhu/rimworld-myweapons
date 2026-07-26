@@ -697,7 +697,13 @@
         "warnAsError": [
           "NU1605"
         ]
-      }
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net481": {
@@ -722,7 +728,7 @@
             "version": "[10.0.1, )"
           }
         },
-        "runtimeIdentifierGraphPath": "/home/lisanhu/.dotnet/sdk/8.0.101/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/home/lisanhu/.dotnet/sdk/10.0.100/RuntimeIdentifierGraph.json"
       }
     }
   }
