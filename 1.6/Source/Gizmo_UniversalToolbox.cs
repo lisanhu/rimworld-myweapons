@@ -98,6 +98,7 @@ public class Gizmo_UniversalToolbox : Gizmo
         float target = value / max;
         if (editingRow == i)
         {
+            GUI.color = Color.white;
             GUI.SetNextControlName(EditControlName);
             editBuffer = GUI.TextField(valueRect, editBuffer, Verse.Text.CurTextFieldStyle);
             if (wantEditFocus)
@@ -105,7 +106,9 @@ public class Gizmo_UniversalToolbox : Gizmo
                 GUI.FocusControl(EditControlName);
                 wantEditFocus = false;
             }
-            if (!editBuffer.NullOrEmpty() && float.TryParse(editBuffer, out float committed))
+            if (!editBuffer.NullOrEmpty() && float.TryParse(editBuffer,
+                    System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out float committed))
             {
                 committed = Mathf.Clamp(committed, 0f, max);
                 committed = isInt ? Mathf.Round(committed) : committed;
@@ -115,9 +118,11 @@ public class Gizmo_UniversalToolbox : Gizmo
                     comp.Notify_SettingsChanged();
                 }
             }
-            if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
+            if (Event.current.type == EventType.KeyDown &&
+                (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
             {
                 editingRow = -1;
+                GUIUtility.keyboardControl = 0;
                 Event.current.Use();
             }
         }
@@ -125,11 +130,12 @@ public class Gizmo_UniversalToolbox : Gizmo
         {
             Text.Anchor = TextAnchor.MiddleRight;
             GUI.color = Color.white;
-            Widgets.Label(valueRect, isInt ? $"+{(int)value}" : $"+{value:0.0}");
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            Widgets.Label(valueRect, isInt ? $"+{(int)value}" : $"+{value.ToString("0.0", inv)}");
             if (Widgets.ButtonInvisible(valueRect))
             {
                 editingRow = i;
-                editBuffer = isInt ? ((int)value).ToString() : value.ToString("0.0");
+                editBuffer = isInt ? ((int)value).ToString() : value.ToString("0.0", inv);
                 wantEditFocus = true;
             }
         }
