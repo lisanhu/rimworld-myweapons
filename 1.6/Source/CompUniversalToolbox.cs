@@ -27,7 +27,7 @@ public class CompUniversalToolbox : ThingComp
     public override void PostExposeData()
     {
         base.PostExposeData();
-        Scribe_Values.Look(ref qualityOffset, "qualityOffset", 3);
+        Scribe_Values.Look(ref qualityOffset, "qualityOffset", Props.defaultQualityOffset);
         Scribe_Values.Look(ref workSpeedOffset, "workSpeedOffset", 0f);
         Scribe_Values.Look(ref researchSpeedOffset, "researchSpeedOffset", 0f);
         Scribe_Values.Look(ref entityStudyRateOffset, "entityStudyRateOffset", 0f);

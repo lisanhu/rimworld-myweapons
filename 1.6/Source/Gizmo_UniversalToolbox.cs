@@ -59,6 +59,7 @@ public class Gizmo_UniversalToolbox : Gizmo
         try
         {
             Rect outer = new Rect(topLeft.x, topLeft.y, PanelWidth, PanelHeight);
+            GUI.color = Color.white;
             GUI.DrawTexture(outer, PanelBgTex);
             Color oldColor = GUI.color;
             GUI.color = BorderColor;
@@ -106,24 +107,22 @@ public class Gizmo_UniversalToolbox : Gizmo
                 GUI.FocusControl(EditControlName);
                 wantEditFocus = false;
             }
-            if (!editBuffer.NullOrEmpty() && float.TryParse(editBuffer,
-                    System.Globalization.NumberStyles.Float,
-                    System.Globalization.CultureInfo.InvariantCulture, out float committed))
-            {
-                committed = Mathf.Clamp(committed, 0f, max);
-                committed = isInt ? Mathf.Round(committed) : committed;
-                if (!Mathf.Approximately(committed, value))
-                {
-                    set(comp, committed);
-                    comp.Notify_SettingsChanged();
-                }
-            }
+            bool commit = false;
             if (Event.current.type == EventType.KeyDown &&
                 (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter))
             {
-                editingRow = -1;
-                GUIUtility.keyboardControl = 0;
+                commit = true;
                 Event.current.Use();
+            }
+            else if (Event.current.type == EventType.MouseDown && Event.current.button == 0 &&
+                     !valueRect.Contains(Event.current.mousePosition))
+            {
+                commit = true;
+            }
+            if (commit)
+            {
+                CommitEdit(i);
+                GUIUtility.keyboardControl = 0;
             }
         }
         else
@@ -150,10 +149,33 @@ public class Gizmo_UniversalToolbox : Gizmo
             float scaled = target * max;
             set(comp, isInt ? Mathf.Round(scaled) : Mathf.Round(scaled * 10f) / 10f);
             comp.Notify_SettingsChanged();
+            if (editingRow == i)
+            {
+                editingRow = -1;
+                GUIUtility.keyboardControl = 0;
+            }
         }
 
         GUI.color = Color.white;
         Text.Font = oldFont;
         Text.Anchor = oldAnchor;
+    }
+
+    private void CommitEdit(int i)
+    {
+        var (_, get, set, max, _, isInt) = Rows[i];
+        editingRow = -1;
+        if (!editBuffer.NullOrEmpty() && float.TryParse(editBuffer,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out float committed))
+        {
+            committed = Mathf.Clamp(committed, 0f, max);
+            committed = isInt ? Mathf.Round(committed) : committed;
+            if (!Mathf.Approximately(committed, get(comp)))
+            {
+                set(comp, committed);
+                comp.Notify_SettingsChanged();
+            }
+        }
     }
 }
