@@ -20,10 +20,13 @@ public class Gizmo_UniversalToolbox : Gizmo
 
     private static readonly Color BorderColor = new Color(0.5f, 0.5f, 0.5f, 0.6f);
 
+    private const string EditControlName = "MW_UTB_Edit";
+
     private readonly CompUniversalToolbox comp;
     private readonly bool[] dragging = new bool[4];
     private int editingRow = -1;
     private string editBuffer;
+    private bool wantEditFocus;
 
     private static readonly Texture2D BarFillTex = SolidColorMaterials.NewSolidColorTexture(new Color(0.4f, 0.65f, 0.9f));
     private static readonly Texture2D BarFillHighlightTex = SolidColorMaterials.NewSolidColorTexture(new Color(0.5f, 0.75f, 1f));
@@ -95,12 +98,22 @@ public class Gizmo_UniversalToolbox : Gizmo
         float target = value / max;
         if (editingRow == i)
         {
-            float parsed = isInt ? Mathf.RoundToInt(value) : value;
-            Widgets.TextFieldNumeric(valueRect, ref parsed, ref editBuffer, 0f, max);
+            GUI.SetNextControlName(EditControlName);
+            editBuffer = GUI.TextField(valueRect, editBuffer, Verse.Text.CurTextFieldStyle);
+            if (wantEditFocus)
+            {
+                GUI.FocusControl(EditControlName);
+                wantEditFocus = false;
+            }
             if (!editBuffer.NullOrEmpty() && float.TryParse(editBuffer, out float committed))
             {
-                set(comp, isInt ? Mathf.Round(committed) : committed);
-                comp.Notify_SettingsChanged();
+                committed = Mathf.Clamp(committed, 0f, max);
+                committed = isInt ? Mathf.Round(committed) : committed;
+                if (!Mathf.Approximately(committed, value))
+                {
+                    set(comp, committed);
+                    comp.Notify_SettingsChanged();
+                }
             }
             if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
             {
@@ -117,6 +130,7 @@ public class Gizmo_UniversalToolbox : Gizmo
             {
                 editingRow = i;
                 editBuffer = isInt ? ((int)value).ToString() : value.ToString("0.0");
+                wantEditFocus = true;
             }
         }
 
