@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+    <ThingDef ParentName="ApparelBase">
+        <defName>MW_UniversalToolbox</defName>
+        <tradeability>None</tradeability>
+        <label>universal toolbox</label>
+        <description>Universal toolbox. Adjustable quality offset, global work speed, research speed and entity study rate via its command panel when worn.</description>
+        <thingClass>Apparel</thingClass>
+        <useHitPoints>false</useHitPoints>
+        <generateCommonality>0</generateCommonality>
+        <generateAllowChance>0</generateAllowChance>
+        <graphicData>
+            <texPath>MyWeapons/toolbox</texPath>
+            <graphicClass>Graphic_Single</graphicClass>
+        </graphicData>
+        <recipeMaker>
+            <workSkill>Crafting</workSkill>
+            <recipeUsers>
+                <li>CraftingSpot</li>
+                <li>PraySpot</li>
+            </recipeUsers>
+        </recipeMaker>
+        <tickerType>Normal</tickerType>
+        <techLevel>Spacer</techLevel>
+        <statBases>
+            <Mass>0.000001</Mass>
+            <WorkToMake>1</WorkToMake>
+            <Flammability>0</Flammability>
+            <MarketValue>0</MarketValue>
+            <DeteriorationRate>0</DeteriorationRate>
+            <EquipDelay>0</EquipDelay>
+        </statBases>
+        <comps>
+            <li Class="MyWeapons.CompProperties_UniversalToolbox"/>
+        </comps>
+        <thingSetMakerTags>
+            <li>RewardStandardQualitySuper</li>
+        </thingSetMakerTags>
+        <stuffCategories>
+            <li>Metallic</li>
+        </stuffCategories>
+        <costStuffCount>1</costStuffCount>
+        <thingCategories Inherit="False">
+            <li>MW_Apparels</li>
+        </thingCategories>
+        <apparel>
+            <countsAsClothingForNudity>false</countsAsClothingForNudity>
+            <careIfWornByCorpse>false</careIfWornByCorpse>
+            <careIfDamaged>false</careIfDamaged>
+            <wearPerDay>0</wearPerDay>
+            <bodyPartGroups>
+                <li>Shoulders</li>
+            </bodyPartGroups>
+            <layers>
+                <li>MW_CarryWith</li>
+            </layers>
+            <tags>
+                <li>BeltDefense</li>
+            </tags>
+            <developmentalStageFilter>Child, Adult</developmentalStageFilter>
+        </apparel>
+    </ThingDef>
+</Defs>
