@@ -45,13 +45,13 @@ public class Gizmo_UniversalToolbox : Gizmo
         return PanelWidth;
     }
 
-    private static readonly (string label, Func<CompUniversalToolbox, float> get,
-        Action<CompUniversalToolbox, float> set, float max, int increments, bool isInt)[] Rows =
+    private static readonly (string labelKey, Func<CompUniversalToolbox, float> get,
+        Action<CompUniversalToolbox, float> set, float max, bool isInt)[] Rows =
     {
-        ("品质偏移", c => c.qualityOffset, (c, v) => c.qualityOffset = Mathf.RoundToInt(v), 5f, 5, true),
-        ("工作速度", c => c.workSpeedOffset, (c, v) => c.workSpeedOffset = v, 50f, 500, false),
-        ("研究速度", c => c.researchSpeedOffset, (c, v) => c.researchSpeedOffset = v, 50f, 500, false),
-        ("调查速率", c => c.entityStudyRateOffset, (c, v) => c.entityStudyRateOffset = v, 50f, 500, false),
+        ("MW_UniversalToolbox_RowQuality", c => c.qualityOffset, (c, v) => c.qualityOffset = Mathf.RoundToInt(v), 5f, true),
+        ("MW_UniversalToolbox_RowWorkSpeed", c => c.workSpeedOffset, (c, v) => c.workSpeedOffset = v, 50f, false),
+        ("MW_UniversalToolbox_RowResearch", c => c.researchSpeedOffset, (c, v) => c.researchSpeedOffset = v, 50f, false),
+        ("MW_UniversalToolbox_RowEntityStudy", c => c.entityStudyRateOffset, (c, v) => c.entityStudyRateOffset = v, 50f, false),
     };
 
     public override GizmoResult GizmoOnGUI(Vector2 topLeft, float maxWidth, GizmoRenderParms parms)
@@ -81,7 +81,7 @@ public class Gizmo_UniversalToolbox : Gizmo
 
     private void DrawRow(Rect row, int i)
     {
-        var (label, get, set, max, increments, isInt) = Rows[i];
+        var (labelKey, get, set, max, isInt) = Rows[i];
         Rect labelRect = new Rect(row.x, row.y, LabelWidth, row.height);
         Rect barRect = new Rect(row.x + LabelWidth + Gap,
             row.y + (row.height - BarHeight) / 2f,
@@ -93,10 +93,9 @@ public class Gizmo_UniversalToolbox : Gizmo
         Text.Font = GameFont.Tiny;
         Text.Anchor = TextAnchor.MiddleLeft;
         GUI.color = new Color(0.9f, 0.9f, 0.9f);
-        Widgets.Label(labelRect, label);
+        Widgets.Label(labelRect, labelKey.Translate());
 
         float value = get(comp);
-        float target = value / max;
         if (editingRow == i)
         {
             GUI.color = Color.white;
@@ -130,7 +129,7 @@ public class Gizmo_UniversalToolbox : Gizmo
             Text.Anchor = TextAnchor.MiddleRight;
             GUI.color = Color.white;
             var inv = System.Globalization.CultureInfo.InvariantCulture;
-            Widgets.Label(valueRect, isInt ? $"+{(int)value}" : $"+{value.ToString("0.0", inv)}");
+            Widgets.Label(valueRect, isInt ? $"+{(int)value}" : $"+{value.ToString("0.#", inv)}");
             if (Widgets.ButtonInvisible(valueRect))
             {
                 editingRow = i;
@@ -139,31 +138,80 @@ public class Gizmo_UniversalToolbox : Gizmo
             }
         }
 
-        bool drag = dragging[i];
-        float targetBefore = target;
-        Widgets.DraggableBar(barRect, BarFillTex, BarFillHighlightTex, BarBgTex, DragTex,
-            ref drag, value / max, ref target, null, increments);
-        dragging[i] = drag;
-        if (!Mathf.Approximately(targetBefore, target))
-        {
-            float scaled = target * max;
-            set(comp, isInt ? Mathf.Round(scaled) : Mathf.Round(scaled * 10f) / 10f);
-            comp.Notify_SettingsChanged();
-            if (editingRow == i)
-            {
-                editingRow = -1;
-                GUIUtility.keyboardControl = 0;
-            }
-        }
+        DoDragBar(barRect, i, value, max, isInt, set);
 
         GUI.color = Color.white;
         Text.Font = oldFont;
         Text.Anchor = oldAnchor;
     }
 
+    // 自定义拖拽条：按下后全局跟踪鼠标（不要求悬停在条上），松开即停。
+    // 修复 Widgets.DraggableBar 拖出条区域即中断、两端边缘不灵敏的问题。
+    private void DoDragBar(Rect barRect, int i, float value, float max, bool isInt,
+        Action<CompUniversalToolbox, float> set)
+    {
+        Event e = Event.current;
+        bool mouseOver = Mouse.IsOver(barRect);
+        Widgets.FillableBar(barRect, Mathf.Min(value / max, 1f),
+            mouseOver || dragging[i] ? BarFillHighlightTex : BarFillTex, BarBgTex, doBorder: true);
+
+        float stepPct = isInt ? 1f / 5f : 5f / max;
+        float mousePct = Mathf.Clamp01((e.mousePosition.x - barRect.x) / barRect.width);
+        float snapped = Mathf.Clamp01(Mathf.Round(mousePct / stepPct) * stepPct);
+
+        bool apply = false;
+        if (e.type == EventType.MouseDown && e.button == 0 && mouseOver)
+        {
+            dragging[i] = true;
+            apply = true;
+            e.Use();
+        }
+        else if (dragging[i] && e.type == EventType.MouseUp && e.button == 0)
+        {
+            dragging[i] = false;
+            e.Use();
+        }
+        else if (dragging[i])
+        {
+            apply = true;
+            if (e.type == EventType.MouseDrag)
+            {
+                e.Use();
+            }
+        }
+
+        if (apply)
+        {
+            float scaled = snapped * max;
+            float newValue = isInt ? Mathf.Round(scaled) : Mathf.Round(scaled / 5f) * 5f;
+            if (!Mathf.Approximately(newValue, value))
+            {
+                set(comp, newValue);
+                comp.Notify_SettingsChanged();
+                if (editingRow == i)
+                {
+                    editingRow = -1;
+                    GUIUtility.keyboardControl = 0;
+                }
+            }
+        }
+
+        GUI.color = Color.white;
+        DrawBarTarget(barRect, dragging[i] ? snapped : value / max);
+    }
+
+    // 与 Verse.Widgets.DrawDraggableBarTarget 相同的几何
+    private static void DrawBarTarget(Rect rect, float percent)
+    {
+        float num = Mathf.Round((rect.width - 8f) * percent);
+        GUI.DrawTexture(new Rect(rect.x + 3f + num, rect.y, 2f, rect.height), DragTex);
+        GUI.DrawTexture(new Rect(rect.x + 2f + num, rect.y - 3f, 4f, 5f), DragTex);
+        GUI.DrawTexture(new Rect(rect.x + 2f + num, rect.yMax - 2f, 4f, 5f), DragTex);
+    }
+
     private void CommitEdit(int i)
     {
-        var (_, get, set, max, _, isInt) = Rows[i];
+        var (_, get, set, max, isInt) = Rows[i];
         editingRow = -1;
         if (!editBuffer.NullOrEmpty() && float.TryParse(editBuffer,
                 System.Globalization.NumberStyles.Float,

@@ -21,9 +21,9 @@ MyWeapons 现有三个工具箱（`MW_Toolbox` / `MW_ToolboxTwo` / `MW_ToolboxTh
 | 参数 | 属性 | 范围 | 步进 | 默认值 |
 |---|---|---|---|---|
 | 品质偏移 | MW_PawnCreatedQualityOffset | 0–5 整数 | 1 | 3 |
-| 全局工作速度偏移 | WorkSpeedGlobal | 0–50 | 0.1 | 0 |
-| 研究速度偏移 | ResearchSpeed | 0–50 | 0.1 | 0 |
-| 实体调查速率偏移 | EntityStudyRate | 0–50 | 0.1 | 0 |
+| 全局工作速度偏移 | WorkSpeedGlobal | 0–50 | 拖拽 5 / 输入 0.1 | 0 |
+| 研究速度偏移 | ResearchSpeed | 0–50 | 拖拽 5 / 输入 0.1 | 0 |
+| 实体调查速率偏移 | EntityStudyRate | 0–50 | 拖拽 5 / 输入 0.1 | 0 |
 
 ## 源码核实的事实（实现依据）
 
